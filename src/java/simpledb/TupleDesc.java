@@ -118,7 +118,9 @@ public class TupleDesc implements Serializable {
      */
     public String getFieldName(int i) throws NoSuchElementException {
         // some code goes here
-        if (i >= items.size()) throw new NoSuchElementException();
+        if (i >= items.size()) {
+            throw new NoSuchElementException("Index out of bound in TupleDesc: " + i);
+        }
         return items.get(i).fieldName;
     }
 
@@ -134,7 +136,9 @@ public class TupleDesc implements Serializable {
      */
     public Type getFieldType(int i) throws NoSuchElementException {
         // some code goes here
-        if (i >= items.size()) throw new NoSuchElementException();
+        if (i >= items.size()) {
+            throw new NoSuchElementException("Index out of bound in TupleDesc: " + i);
+        }
         return items.get(i).fieldType;
     }
 
@@ -149,13 +153,13 @@ public class TupleDesc implements Serializable {
      */
     public int fieldNameToIndex(String name) throws NoSuchElementException {
         // some code goes here
-        if (name == null) throw new NoSuchElementException();
+        if (name == null) throw new NoSuchElementException("No such field name in TupleDesc: " + name);
         for (int i = 0; i < items.size(); i++) {
             if (name.equals(items.get(i).fieldName)) {
                 return i;
             }
         }
-        throw new NoSuchElementException();
+        throw new NoSuchElementException("No such field name in TupleDesc: " + name);
     }
 
     /**

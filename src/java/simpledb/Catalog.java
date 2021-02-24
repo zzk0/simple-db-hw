@@ -19,11 +19,29 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Catalog {
 
     /**
+     * Initialize in constructor
+     */
+    private final List<CatalogItem> items;
+
+    private static class CatalogItem {
+        DbFile store;
+        String tableName;
+        String pkeyField;
+
+        public CatalogItem(DbFile store, String tableName, String pkeyField) {
+            this.store = store;
+            this.tableName = tableName;
+            this.pkeyField = pkeyField;
+        }
+    }
+
+    /**
      * Constructor.
      * Creates a new, empty catalog.
      */
     public Catalog() {
         // some code goes here
+        items = new LinkedList<>();
     }
 
     /**
@@ -37,9 +55,22 @@ public class Catalog {
      */
     public void addTable(DbFile file, String name, String pkeyField) {
         // some code goes here
+
+        // handle duplicate id only, name only, id & name simultaneously
+        int itemIndexSpecifiedById = getItemById(file.getId());
+        int itemIndexSpecifiedByTableName = getItemByTableName(name);
+        if (itemIndexSpecifiedById != -1) {
+            items.remove(itemIndexSpecifiedById);
+        }
+        if (itemIndexSpecifiedByTableName != -1) {
+            items.remove(itemIndexSpecifiedByTableName);
+        }
+
+        items.add(new CatalogItem(file, name, pkeyField));
     }
 
     public void addTable(DbFile file, String name) {
+        // fixme: What if name is empty ""? Maybe we should handle it
         addTable(file, name, "");
     }
 
@@ -60,7 +91,13 @@ public class Catalog {
      */
     public int getTableId(String name) throws NoSuchElementException {
         // some code goes here
-        return 0;
+        if (name == null) throw new NoSuchElementException("No such table name in Catalog: " + name);
+        for (CatalogItem item : items) {
+            if (name.equals(item.tableName)) {
+                return item.store.getId();
+            }
+        }
+        throw new NoSuchElementException("No such table name in Catalog " + name);
     }
 
     /**
@@ -71,7 +108,12 @@ public class Catalog {
      */
     public TupleDesc getTupleDesc(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        for (CatalogItem item : items) {
+            if (tableid == item.store.getId()) {
+                return item.store.getTupleDesc();
+            }
+        }
+        throw new NoSuchElementException("No such table id in Catalog " + tableid);
     }
 
     /**
@@ -82,27 +124,56 @@ public class Catalog {
      */
     public DbFile getDatabaseFile(int tableid) throws NoSuchElementException {
         // some code goes here
-        return null;
+        for (CatalogItem item : items) {
+            if (tableid == item.store.getId()) {
+                return item.store;
+            }
+        }
+        throw new NoSuchElementException("No such table id in Catalog " + tableid);
     }
 
     public String getPrimaryKey(int tableid) {
         // some code goes here
+        for (CatalogItem item : items) {
+            if (tableid == item.store.getId()) {
+                return item.pkeyField;
+            }
+        }
         return null;
     }
 
     public Iterator<Integer> tableIdIterator() {
         // some code goes here
-        return null;
+        return new Iterator<Integer>() {
+            int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return i < items.size();
+            }
+
+            @Override
+            public Integer next() {
+                i++;
+                return items.get(i - 1).store.getId();
+            }
+        };
     }
 
-    public String getTableName(int id) {
+    public String getTableName(int tableid) {
         // some code goes here
+        for (CatalogItem item : items) {
+            if (tableid == item.store.getId()) {
+                return item.tableName;
+            }
+        }
         return null;
     }
     
     /** Delete all tables from the catalog */
     public void clear() {
         // some code goes here
+        items.clear();
     }
     
     /**
@@ -158,6 +229,35 @@ public class Catalog {
             System.out.println ("Invalid catalog entry : " + line);
             System.exit(0);
         }
+    }
+
+    /**
+     * return -1 when id was not presented in items
+     * @param id The id of the table, as specified by the DbFile.getId()
+     * @return an index that items.get(i).store().getId() == id
+     */
+    private int getItemById(int id) {
+        for (int i = 0; i < items.size(); i++) {
+            if (items.get(i).store.getId() == id) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * return -1 when tableName was not presented in items
+     * @param tableName the name of the specified table
+     * @return an index that items.get(i).tableName == tableName
+     */
+    private int getItemByTableName(String tableName) {
+        if (tableName == null) return -1;
+        for (int i = 0; i < items.size(); i++) {
+            if (tableName.equals(items.get(i).tableName)) {
+                return i;
+            }
+        }
+        return -1;
     }
 }
 

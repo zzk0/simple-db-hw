@@ -1,10 +1,7 @@
 package simpledb;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Tuple maintains information about the contents of a tuple. Tuples have a
@@ -15,7 +12,7 @@ public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final List<Field> fields = new LinkedList<>();
+    private final List<Field> fields = new ArrayList<>();
 
     private TupleDesc desc;
 
