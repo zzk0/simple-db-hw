@@ -151,6 +151,7 @@ public class HeapFile implements DbFile {
         private final int totalPageNumber;
         private int currentPageNumber = 0;
         private Iterator<Tuple> iterator;
+        private boolean isClose = false;
 
         public HeapFileIterator(TransactionId tid) {
             this.tid = tid;
@@ -165,7 +166,7 @@ public class HeapFile implements DbFile {
 
         @Override
         public boolean hasNext() throws DbException, TransactionAbortedException {
-            if (iterator == null) return false;
+            if (iterator == null || isClose) return false;
             if (iterator.hasNext()) return true;
             if (currentPageNumber >= totalPageNumber) return false;
 
@@ -177,12 +178,15 @@ public class HeapFile implements DbFile {
 
         @Override
         public Tuple next() throws DbException, TransactionAbortedException, NoSuchElementException {
-            if (iterator == null) throw new NoSuchElementException("HeapFileIterator not open yet");
+            if (iterator == null || isClose) {
+                throw new NoSuchElementException("HeapFileIterator not open yet or close");
+            }
             return iterator.next();
         }
 
         @Override
         public void rewind() throws DbException, TransactionAbortedException {
+            if (isClose) throw new NoSuchElementException("HeapFileIterator not open yet or close");
             currentPageNumber = 0;
             iterator = getIterator(currentPageNumber);
             currentPageNumber++;
@@ -190,6 +194,7 @@ public class HeapFile implements DbFile {
 
         @Override
         public void close() {
+            isClose = true;
         }
 
         private Iterator<Tuple> getIterator(int pageNumber)

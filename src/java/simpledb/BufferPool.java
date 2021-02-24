@@ -31,6 +31,11 @@ public class BufferPool {
     Permissions[] permissions;
 
     /**
+     * An index for a naive evict algorithm, FIFO
+     */
+    int index = 0;
+
+    /**
      * Creates a BufferPool that caches up to numPages pages.
      *
      * @param numPages maximum number of pages in this buffer pool.
@@ -84,7 +89,12 @@ public class BufferPool {
                 }
             }
         }
-        throw new DbException("No such page: not implemented yet");
+        DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
+        Page page = dbFile.readPage(pid);
+        pages[index] = page;
+        permissions[index] = perm;
+        index++;
+        return page;
     }
 
     /**
