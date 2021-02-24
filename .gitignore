@@ -6,3 +6,4 @@ log
 .idea/
 @{depcache}/
 out/
+*.db

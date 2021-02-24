@@ -209,10 +209,10 @@ public class TupleDesc implements Serializable {
      *            the Object to be compared for equality with this TupleDesc.
      * @return true if the object is equal to this TupleDesc.
      */
-
+    @Override
     public boolean equals(Object o) {
         // some code goes here
-        if (o instanceof TupleDesc) {
+        if (o != null && o.getClass() == getClass()) {
             TupleDesc desc = (TupleDesc) o;
             if (desc.numFields() != numFields()) return false;
             for (int i = 0; i < numFields(); i++) {
