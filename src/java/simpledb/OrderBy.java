@@ -4,6 +4,7 @@ import java.util.*;
 
 /**
  * OrderBy is an operator that implements a relational ORDER BY.
+ * note: load all tuples into memory and sort it
  */
 public class OrderBy extends Operator {
 
@@ -36,7 +37,7 @@ public class OrderBy extends Operator {
     
     public boolean isASC()
     {
-	return this.asc;
+	    return this.asc;
     }
     
     public int getOrderByField()
@@ -46,7 +47,7 @@ public class OrderBy extends Operator {
     
     public String getOrderFieldName()
     {
-	return this.orderByFieldName;
+	    return this.orderByFieldName;
     }
     
     public TupleDesc getTupleDesc() {

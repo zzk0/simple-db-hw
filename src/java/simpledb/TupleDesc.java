@@ -81,6 +81,22 @@ public class TupleDesc implements Serializable {
         size = tempSize;
     }
 
+    public static TupleDesc createAggregatorTupleDesc(String groupByFieldName,
+                                                      Type gFieldType,
+                                                      int gField) {
+        Type[] types;
+        String[] fieldArr;
+        if (gField == Aggregator.NO_GROUPING) {
+            types = new Type[]{ Type.INT_TYPE };
+            fieldArr = new String[] { "COUNT" };
+        }
+        else {
+            types = new Type[]{ gFieldType, Type.INT_TYPE };
+            fieldArr = new String[]{ groupByFieldName, "COUNT" };
+        }
+        return new TupleDesc(types, fieldArr);
+    }
+
     /**
      * Constructor. Create a new tuple desc with typeAr.length fields with
      * fields of the specified types, with anonymous (unnamed) fields.

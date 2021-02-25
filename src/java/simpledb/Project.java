@@ -25,7 +25,7 @@ public class Project extends Operator {
      */
     public Project(ArrayList<Integer> fieldList, ArrayList<Type> typesList,
             OpIterator child) {
-        this(fieldList,typesList.toArray(new Type[]{}),child);
+        this(fieldList, typesList.toArray(new Type[]{}), child);
     }
     
     public Project(ArrayList<Integer> fieldList, Type[] types,
@@ -87,10 +87,9 @@ public class Project extends Operator {
 
     @Override
     public void setChildren(OpIterator[] children) {
-	if (this.child!=children[0])
-	{
-	    this.child = children[0];
-	}
+	    if (this.child != children[0]) {
+            this.child = children[0];
+        }
     }
     
 }
