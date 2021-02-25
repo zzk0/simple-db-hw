@@ -12,9 +12,10 @@ public class Tuple implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final List<Field> fields = new ArrayList<>();
+    private final List<Field> fields;
 
     private TupleDesc desc;
+    private RecordId recordId;
 
     /**
      * Create a new tuple with the specified schema (type).
@@ -25,6 +26,7 @@ public class Tuple implements Serializable {
      */
     public Tuple(TupleDesc td) {
         // some code goes here
+        fields = new ArrayList<>();
         this.desc = td;
         for (int i = 0; i < desc.numFields(); i++) {
             fields.add(null);
@@ -45,7 +47,7 @@ public class Tuple implements Serializable {
      */
     public RecordId getRecordId() {
         // some code goes here
-        return null;
+        return recordId;
     }
 
     /**
@@ -56,6 +58,7 @@ public class Tuple implements Serializable {
      */
     public void setRecordId(RecordId rid) {
         // some code goes here
+        recordId = rid;
     }
 
     /**
@@ -94,7 +97,7 @@ public class Tuple implements Serializable {
         // some code goes here
         StringBuilder sb = new StringBuilder();
         for (Field field : fields) {
-            sb.append(field.toString()).append("\t");
+            sb.append(field).append("\t");
         }
         return sb.substring(0, sb.length() - 1);
     }
@@ -116,5 +119,20 @@ public class Tuple implements Serializable {
     {
         // some code goes here
         this.desc = td;
+    }
+
+    public static Tuple merge(Tuple t1, Tuple t2) {
+        TupleDesc desc1 = t1.getTupleDesc();
+        TupleDesc desc2 = t2.getTupleDesc();
+        TupleDesc newDesc = TupleDesc.merge(desc1, desc2);
+
+        Tuple newTuple = new Tuple(newDesc);
+        newTuple.fields.clear();
+        newTuple.fields.addAll(t1.fields);
+        newTuple.fields.addAll(t2.fields);
+
+        // Todo: What about RecordId?
+
+        return newTuple;
     }
 }
