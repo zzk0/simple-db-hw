@@ -13,15 +13,13 @@ import junit.framework.JUnit4TestAdapter;
 public class TupleDescTest extends SimpleDbTestBase {
 
     /**
-     * Unit test for TupleDesc.combine()
+     * Unit test for TupleDesc.merge()
      */
     @Test public void combine() {
         TupleDesc td1, td2, td3;
 
         td1 = Utility.getTupleDesc(1, "td1");
         td2 = Utility.getTupleDesc(2, "td2");
-
-        // test td1.combine(td2)
         td3 = TupleDesc.merge(td1, td2);
         assertEquals(3 , td3.numFields());
         assertEquals(3 * Type.INT_TYPE.getLen(), td3.getSize());

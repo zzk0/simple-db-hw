@@ -71,7 +71,7 @@ public class Catalog {
 
     public void addTable(DbFile file, String name) {
         // fixme: What if name is empty ""? Maybe we should handle it
-        addTable(file, name, "");
+        addTable(file, name, null);
     }
 
     /**
@@ -187,7 +187,7 @@ public class Catalog {
             BufferedReader br = new BufferedReader(new FileReader(new File(catalogFile)));
             
             while ((line = br.readLine()) != null) {
-                //assume line is of the format name (field type, field type, ...)
+                //assume line is of the format { name (field type, field type, ...) }
                 String name = line.substring(0, line.indexOf("(")).trim();
                 //System.out.println("TABLE NAME: " + name);
                 String fields = line.substring(line.indexOf("(") + 1, line.indexOf(")")).trim();

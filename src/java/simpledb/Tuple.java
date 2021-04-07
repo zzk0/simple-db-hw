@@ -99,7 +99,7 @@ public class Tuple implements Serializable {
         for (Field field : fields) {
             sb.append(field).append("\t");
         }
-        return sb.substring(0, sb.length() - 1);
+        return sb.substring(0, sb.length() - 1); // remove the last '\t'
     }
 
     /**

@@ -37,8 +37,8 @@ public class TupleDesc implements Serializable {
         public final String fieldName;
 
         public TDItem(Type t, String n) {
-            this.fieldName = n;
             this.fieldType = t;
+            this.fieldName = n;
         }
 
         public String toString() {
@@ -228,17 +228,16 @@ public class TupleDesc implements Serializable {
     @Override
     public boolean equals(Object o) {
         // some code goes here
-        if (o != null && o.getClass() == getClass()) {
-            TupleDesc desc = (TupleDesc) o;
-            if (desc.numFields() != numFields()) return false;
-            for (int i = 0; i < numFields(); i++) {
-                if (!desc.getFieldType(i).equals(getFieldType(i))) {
-                    return false;
-                }
+        if (o == this) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        TupleDesc desc = (TupleDesc) o;
+        if (desc.numFields() != numFields()) return false;
+        for (int i = 0; i < numFields(); i++) {
+            if (!desc.getFieldType(i).equals(getFieldType(i))) {
+                return false;
             }
-            return true;
         }
-        return false;
+        return true;
     }
 
     public int hashCode() {
