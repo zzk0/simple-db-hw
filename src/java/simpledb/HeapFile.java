@@ -106,6 +106,9 @@ public class HeapFile implements DbFile {
     public void writePage(Page page) throws IOException {
         // some code goes here
         // not necessary for lab1
+        long startPos = BufferPool.getPageSize() * page.getId().getPageNumber();
+        tableDataFile.seek(startPos);
+        tableDataFile.write(page.getPageData());
     }
 
     /**
@@ -128,7 +131,34 @@ public class HeapFile implements DbFile {
             throws DbException, IOException, TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
-        return null;
+        // find a page
+        HeapPageId heapPageId = null;
+        HeapPage heapPage = null;
+        boolean noNewPage = false;
+        for (int i = 0; i < numPages(); i++) {
+            heapPageId = new HeapPageId(id, i);
+            heapPage = (HeapPage) Database.getBufferPool().getPage(tid, heapPageId, Permissions.READ_WRITE);
+            if (heapPage.getNumEmptySlots() > 0) {
+                noNewPage = true;
+            }
+        }
+
+        // new page needed
+        if (!noNewPage) {
+            heapPageId = new HeapPageId(id, numPages());
+            heapPage = new HeapPage(heapPageId, HeapPage.createEmptyPageData());
+            writePage(heapPage);
+            heapPage = (HeapPage) Database.getBufferPool().getPage(tid, heapPageId, Permissions.READ_WRITE);
+        }
+
+        // insert Tuple, the HeapPage will update RecordId automatically
+        heapPage.insertTuple(t);
+        // writePage(heapPage); // no need because the BufferPool can flush to the disk
+
+        // The ArrayList contains the pages that were modified
+        ArrayList<Page> pages = new ArrayList<>();
+        pages.add(heapPage);
+        return pages;
     }
 
     // see DbFile.java for javadocs
@@ -136,7 +166,18 @@ public class HeapFile implements DbFile {
             TransactionAbortedException {
         // some code goes here
         // not necessary for lab1
-        return null;
+        PageId pageId = t.getRecordId().getPageId();
+        Page page = Database.getBufferPool().getPage(tid, pageId, Permissions.READ_WRITE);
+        if (page.getClass() != HeapPage.class) {
+            throw new DbException("This is not a HeapPage");
+        }
+        HeapPage heapPage = (HeapPage) page;
+        heapPage.deleteTuple(t);
+
+        // The ArrayList contains the pages that were modified
+        ArrayList<Page> pages = new ArrayList<>();
+        pages.add(page);
+        return pages;
     }
 
     // see DbFile.java for javadocs
@@ -212,4 +253,3 @@ public class HeapFile implements DbFile {
     }
 
 }
-

@@ -35,6 +35,9 @@ public class Join extends Operator {
         this.predicate = p;
         this.child1 = child1;
         this.child2 = child2;
+        // The reason for the name child:
+        // you can view the operators as a tree, the node represents data
+        // the edge represents operator
     }
 
     public JoinPredicate getJoinPredicate() {

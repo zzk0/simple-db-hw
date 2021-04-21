@@ -13,13 +13,14 @@ import java.io.*;
  */
 public class HeapPage implements Page {
 
-    final HeapPageId pid;
-    final TupleDesc tupleDesc;
-    final byte[] header;
-    final Tuple[] tuples;
-    final int numSlots; // one slot per tuple
-
-    byte[] oldData;
+    private final HeapPageId pid;
+    private final TupleDesc tupleDesc;
+    private final byte[] header;
+    private final Tuple[] tuples;
+    private final int numSlots; // one slot per tuple
+    
+    private TransactionId transactionIdMakeDirty;
+    private byte[] oldData;
     private final Byte oldDataLock = (byte) 0;
 
     /**
@@ -257,8 +258,8 @@ public class HeapPage implements Page {
     }
 
     /**
-     * Delete the specified tuple from the page; the corresponding header bit should be updated to reflect
-     *   that it is no longer stored on any page.
+     * Delete the specified tuple from the page; the corresponding header bit
+     * should be updated to reflect that it is no longer stored on any page.
      * @throws DbException if this tuple is not on this page, or tuple slot is
      *         already empty.
      * @param t The tuple to delete
@@ -266,6 +267,16 @@ public class HeapPage implements Page {
     public void deleteTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+        if (t == null || !t.getTupleDesc().equals(tupleDesc)) {
+            throw new DbException("delete tuple cannot be null or TupleDesc is mismatch");
+        }
+        int tupleNumber = t.getRecordId().getTupleNumber();
+        if (tupleNumber >= tuples.length ||
+                !isSlotUsed(tupleNumber) ||
+                !t.equals(tuples[tupleNumber])) {
+            throw new DbException("Not exist such tuple");
+        }
+        markSlotUsed(tupleNumber, false);
     }
 
     /**
@@ -278,6 +289,20 @@ public class HeapPage implements Page {
     public void insertTuple(Tuple t) throws DbException {
         // some code goes here
         // not necessary for lab1
+        if (t == null || !t.getTupleDesc().equals(tupleDesc)) {
+            throw new DbException("Insert tuple cannot be null or TupleDesc is mismatch");
+        }
+        for (int i = 0; i < numSlots; i++) {
+            if (!isSlotUsed(i)) {
+                tuples[i] = t;
+                markSlotUsed(i, true);
+                PageId pageId = getId();
+                RecordId recordId = new RecordId(pageId, i);
+                t.setRecordId(recordId);
+                return;
+            }
+        }
+        throw new DbException("Page is full");
     }
 
     /**
@@ -287,6 +312,12 @@ public class HeapPage implements Page {
     public void markDirty(boolean dirty, TransactionId tid) {
         // some code goes here
 	    // not necessary for lab1
+        if (dirty) {
+            transactionIdMakeDirty = tid;
+        }
+        else {
+            transactionIdMakeDirty = null;
+        }
     }
 
     /**
@@ -295,7 +326,7 @@ public class HeapPage implements Page {
     public TransactionId isDirty() {
         // some code goes here
 	    // Not necessary for lab1
-        return null;      
+        return transactionIdMakeDirty;
     }
 
     /**
@@ -306,10 +337,10 @@ public class HeapPage implements Page {
         int numFillSlots = 0;
         for (byte num : header) {
             if (num >= 0) {
-                numFillSlots += bitCount[num];
+                numFillSlots += bitCount[num]; // if num is positive
             }
             else {
-                numFillSlots += bitCount[255 + num + 1];
+                numFillSlots += bitCount[255 + num + 1]; // if num is negative
             }
         }
         return numSlots - numFillSlots;
@@ -332,10 +363,19 @@ public class HeapPage implements Page {
     private void markSlotUsed(int i, boolean value) {
         // some code goes here
         // not necessary for lab1
+        int slotBitOnByte = (int) Math.floor(i / 8.0);
+        i = i - slotBitOnByte * 8;
+        if (value) {
+            header[slotBitOnByte] |= (1 << i);
+        }
+        else {
+            header[slotBitOnByte] &= ~(1 << i);
+        }
     }
 
     /**
-     * @return an iterator over all tuples on this page (calling remove on this iterator throws an UnsupportedOperationException)
+     * @return an iterator over all tuples on this page
+     * (calling remove on this iterator throws an UnsupportedOperationException)
      * (note that this iterator shouldn't return tuples in empty slots!)
      */
     public Iterator<Tuple> iterator() {
