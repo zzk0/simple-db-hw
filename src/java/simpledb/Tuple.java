@@ -135,4 +135,13 @@ public class Tuple implements Serializable {
 
         return newTuple;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Tuple tuple = (Tuple) o;
+        return Objects.equals(fields, tuple.fields) &&
+                Objects.equals(desc, tuple.desc);
+    }
 }
