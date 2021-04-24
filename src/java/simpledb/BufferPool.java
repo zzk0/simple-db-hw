@@ -3,7 +3,6 @@ package simpledb;
 import java.io.*;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * BufferPool manages the reading and writing of pages into memory from
@@ -92,9 +91,7 @@ public class BufferPool {
         }
         DbFile dbFile = Database.getCatalog().getDatabaseFile(pid.getTableId());
         Page page = dbFile.readPage(pid);
-        pages[index] = page;
-        permissions[index] = perm;
-        index++;
+        addPage(page, perm);
         return page;
     }
 
@@ -165,7 +162,7 @@ public class BufferPool {
         List<Page> pages = dbFile.insertTuple(tid, t);
         for (Page page : pages) {
             page.markDirty(true, tid);
-            dbFile.writePage(page); // to pass the tests
+            addPage(page, Permissions.READ_WRITE);
         }
     }
 
@@ -190,6 +187,7 @@ public class BufferPool {
         List<Page> pages = dbFile.deleteTuple(tid, t);
         for (Page page : pages) {
             page.markDirty(true, tid);
+            addPage(page, Permissions.READ_WRITE);
         }
     }
 
@@ -242,4 +240,18 @@ public class BufferPool {
         // not necessary for lab1
     }
 
+    private void addPage(Page page, Permissions perm) {
+        if (pages[index] != null) {
+            DbFile dbFile = Database.getCatalog().getDatabaseFile(pages[index].getId().getTableId());
+            try {
+                dbFile.writePage(pages[index]);
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        pages[index] = page;
+        permissions[index] = perm;
+        index = (index + 1) % DEFAULT_PAGES;
+    }
 }
