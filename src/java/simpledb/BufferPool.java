@@ -199,7 +199,6 @@ public class BufferPool {
     public synchronized void flushAllPages() throws IOException {
         // some code goes here
         // not necessary for lab1
-
     }
 
     /** Remove the specific page id from the buffer pool.
@@ -241,7 +240,15 @@ public class BufferPool {
     }
 
     private void addPage(Page page, Permissions perm) {
-        if (pages[index] != null) {
+        // if it is in cache
+        for (int i = 0; i < numPages; i++) {
+            if (pages[i] != null && pages[i].getId().equals(page.getId())) {
+                pages[i] = page;
+                return;
+            }
+        }
+        // if it is not exist in cache
+        if (pages[index] != null && pages[index].isDirty() != null) {
             DbFile dbFile = Database.getCatalog().getDatabaseFile(pages[index].getId().getTableId());
             try {
                 dbFile.writePage(pages[index]);
@@ -252,6 +259,6 @@ public class BufferPool {
         }
         pages[index] = page;
         permissions[index] = perm;
-        index = (index + 1) % DEFAULT_PAGES;
+        index = (index + 1) % numPages;
     }
 }
