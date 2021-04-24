@@ -165,6 +165,7 @@ public class BufferPool {
         List<Page> pages = dbFile.insertTuple(tid, t);
         for (Page page : pages) {
             page.markDirty(true, tid);
+            dbFile.writePage(page); // to pass the tests
         }
     }
 
