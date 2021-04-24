@@ -385,7 +385,13 @@ public class HeapPage implements Page {
 
             @Override
             public boolean hasNext() {
-                return i < (numSlots - getNumEmptySlots());
+                while (i < numSlots) {
+                    if (isSlotUsed(i)) {
+                        return true;
+                    }
+                    i++;
+                }
+                return false;
             }
 
             @Override

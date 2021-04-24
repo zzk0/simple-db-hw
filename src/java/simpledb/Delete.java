@@ -10,6 +10,11 @@ public class Delete extends Operator {
 
     private static final long serialVersionUID = 1L;
 
+    private TransactionId tid;
+    private OpIterator child;
+    private TupleDesc tupleDesc;
+    private boolean open = false;
+    private boolean haveFetch = false;
     /**
      * Constructor specifying the transaction that this delete belongs to as
      * well as the child to read from.
@@ -21,23 +26,35 @@ public class Delete extends Operator {
      */
     public Delete(TransactionId t, OpIterator child) {
         // some code goes here
+        this.tid = t;
+        this.child = child;
+        this.tupleDesc = new TupleDesc(new Type[]{ Type.INT_TYPE });
     }
 
     public TupleDesc getTupleDesc() {
         // some code goes here
-        return null;
+        return tupleDesc;
     }
 
     public void open() throws DbException, TransactionAbortedException {
         // some code goes here
+        open = true;
+        super.open();
+        child.open();
     }
 
     public void close() {
         // some code goes here
+        open = false;
+        haveFetch = false;
+        super.close();
+        child.close();
     }
 
     public void rewind() throws DbException, TransactionAbortedException {
         // some code goes here
+        haveFetch = false;
+        child.rewind();
     }
 
     /**
@@ -51,18 +68,38 @@ public class Delete extends Operator {
      */
     protected Tuple fetchNext() throws TransactionAbortedException, DbException {
         // some code goes here
-        return null;
+        if (!open) {
+            throw new DbException("Not open yet");
+        }
+        if (haveFetch) {
+            return null;
+        }
+        int count = 0;
+        while (child.hasNext()) {
+            count++;
+            try {
+                Database.getBufferPool().deleteTuple(tid, child.next());
+            }
+            catch (IOException e) {
+                throw new DbException("IOException");
+            }
+        }
+        Tuple tuple = new Tuple(tupleDesc);
+        tuple.setField(0, new IntField(count));
+        haveFetch = true;
+        return tuple;
     }
 
     @Override
     public OpIterator[] getChildren() {
         // some code goes here
-        return null;
+        return new OpIterator[]{ child };
     }
 
     @Override
     public void setChildren(OpIterator[] children) {
         // some code goes here
+        child = children[0];
     }
 
 }

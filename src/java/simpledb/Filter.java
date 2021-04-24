@@ -11,6 +11,7 @@ public class Filter extends Operator {
 
     private final Predicate predicate;
     private OpIterator child;
+    private int count = 0;
 
     /**
      * Constructor accepts a predicate to apply and a child operator to read
@@ -40,6 +41,7 @@ public class Filter extends Operator {
     public void open() throws DbException, NoSuchElementException,
             TransactionAbortedException {
         // some code goes here
+        count = 0;
         super.open();
         child.open();
     }
@@ -68,6 +70,7 @@ public class Filter extends Operator {
             TransactionAbortedException, DbException {
         // some code goes here
         while (child.hasNext()) {
+            count++;
             Tuple tuple = child.next();
             if (predicate.filter(tuple)) {
                 return tuple;

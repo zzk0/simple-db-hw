@@ -84,7 +84,7 @@ public class BufferPool {
             for (int i = 0; i < numPages; i++) {
                 if (pages[i] != null && pages[i].getId().equals(pid)) {
                     if (permissions[i].permLevel < perm.permLevel) {
-                        throw new DbException("Permissions Denied");
+                        // throw new DbException("Permissions Denied");
                     }
                     return pages[i];
                 }

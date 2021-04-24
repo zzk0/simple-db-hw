@@ -189,14 +189,14 @@ public class HeapFile implements DbFile {
     private class HeapFileIterator implements DbFileIterator {
 
         private final TransactionId tid;
-        private final int totalPageNumber;
+        // private final int totalPageNumber;
         private int currentPageNumber = 0;
         private Iterator<Tuple> iterator;
         private boolean isClosed = true;
 
         public HeapFileIterator(TransactionId tid) {
             this.tid = tid;
-            this.totalPageNumber = numPages();
+            // this.totalPageNumber = numPages();
         }
 
         @Override
@@ -211,11 +211,16 @@ public class HeapFile implements DbFile {
         public boolean hasNext() throws DbException, TransactionAbortedException {
             if (iterator == null || isClosed) return false;
             if (iterator.hasNext()) return true;
-            if (currentPageNumber >= totalPageNumber) return false;
+            if (currentPageNumber >= numPages()) return false;
 
             // Open a new Iterator<Tuple> here
             iterator = getIterator(currentPageNumber);
             currentPageNumber++;
+            while (!iterator.hasNext()) {
+                if (currentPageNumber >= numPages()) return false;
+                iterator = getIterator(currentPageNumber);
+                currentPageNumber++;
+            }
             return true;
         }
 
@@ -242,7 +247,7 @@ public class HeapFile implements DbFile {
 
         private Iterator<Tuple> getIterator(int pageNumber)
                 throws TransactionAbortedException, DbException {
-            if (pageNumber >= totalPageNumber) {
+            if (pageNumber >= numPages()) {
                 throw new DbException("There is no Page not all");
             }
             // todo: Use READ_ONLY currently, dont know where to get it
